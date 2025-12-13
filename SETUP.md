@@ -13,6 +13,13 @@ PORT=3000
 JWT_SECRET=your-secret-key-change-this-in-production-use-a-random-string
 TMDB_API_KEY=your-tmdb-api-key-here
 NODE_ENV=development
+
+# Google OAuth (Optional - for Google Sign-in)
+GOOGLE_CLIENT_ID=your-google-client-id
+GOOGLE_CLIENT_SECRET=your-google-client-secret
+GOOGLE_CALLBACK_URL=http://localhost:3000/api/auth/google/callback
+FRONTEND_URL=http://localhost:3000
+SESSION_SECRET=your-session-secret
 ```
 
 ### Getting a TMDB API Key:
@@ -21,6 +28,17 @@ NODE_ENV=development
 3. Go to Settings > API
 4. Request an API key (free)
 5. Copy the API key to your `.env` file
+
+### Setting up Google OAuth (Optional):
+1. Go to https://console.cloud.google.com/
+2. Create a new project or select an existing one
+3. Enable Google+ API
+4. Go to Credentials > Create Credentials > OAuth 2.0 Client ID
+5. Configure consent screen if prompted
+6. Set application type to "Web application"
+7. Add authorized redirect URI: `http://localhost:3000/api/auth/google/callback`
+8. Copy Client ID and Client Secret to your `.env` file
+9. For production, update `GOOGLE_CALLBACK_URL` and `FRONTEND_URL` with your production URLs
 
 ## Step 3: Initialize Database
 ```bash

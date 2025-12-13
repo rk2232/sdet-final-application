@@ -7,10 +7,42 @@ let authToken = null;
 
 // Initialize App
 document.addEventListener('DOMContentLoaded', () => {
+    // Check for Google OAuth callback
+    handleGoogleCallback();
     checkAuth();
     setupEventListeners();
     loadPopularMovies();
 });
+
+// Handle Google OAuth callback
+function handleGoogleCallback() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const token = urlParams.get('token');
+    const username = urlParams.get('username');
+    const error = urlParams.get('error');
+
+    if (error) {
+        showToast('Google authentication failed', 'error');
+        // Clean URL
+        window.history.replaceState({}, document.title, window.location.pathname);
+        return;
+    }
+
+    if (token) {
+        authToken = token;
+        localStorage.setItem('authToken', authToken);
+        
+        // Fetch user profile
+        fetchUserProfile().then(() => {
+            showToast(`Welcome ${username || 'back'}!`, 'success');
+            showPage('home');
+            updateAuthUI();
+        });
+        
+        // Clean URL
+        window.history.replaceState({}, document.title, window.location.pathname);
+    }
+}
 
 // Check Authentication
 function checkAuth() {
@@ -118,7 +150,7 @@ function switchAuthTab(tab) {
 
 async function handleLogin(e) {
     e.preventDefault();
-    const email = document.getElementById('login-email').value;
+    const username = document.getElementById('login-username').value;
     const password = document.getElementById('login-password').value;
 
     try {
@@ -126,7 +158,7 @@ async function handleLogin(e) {
         const response = await fetch(`${API_BASE_URL}/auth/login`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email, password }),
+            body: JSON.stringify({ username, password }),
         });
 
         const data = await response.json();
@@ -146,6 +178,11 @@ async function handleLogin(e) {
         hideLoading();
         showToast('Error connecting to server', 'error');
     }
+}
+
+function loginWithGoogle() {
+    // Redirect to Google OAuth endpoint
+    window.location.href = `${API_BASE_URL}/auth/google`;
 }
 
 async function handleRegister(e) {

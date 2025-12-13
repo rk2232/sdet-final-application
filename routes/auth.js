@@ -1,6 +1,7 @@
 const express = require('express');
 const jwt = require('jsonwebtoken');
 const { body, validationResult } = require('express-validator');
+const passport = require('passport');
 const User = require('../models/User');
 const UserPreferences = require('../models/UserPreferences');
 const { authenticateToken } = require('../middleware/auth');
@@ -56,9 +57,9 @@ router.post('/register', [
   }
 });
 
-// Login
+// Login with username and password
 router.post('/login', [
-  body('email').isEmail().withMessage('Valid email required'),
+  body('username').notEmpty().withMessage('Username required'),
   body('password').notEmpty().withMessage('Password required'),
 ], async (req, res) => {
   try {
@@ -67,18 +68,18 @@ router.post('/login', [
       return res.status(400).json({ errors: errors.array() });
     }
 
-    const { email, password } = req.body;
+    const { username, password } = req.body;
 
-    // Find user
-    const user = await User.findByEmail(email);
+    // Find user by username
+    const user = await User.findByUsername(username);
     if (!user) {
-      return res.status(401).json({ error: 'Invalid email or password' });
+      return res.status(401).json({ error: 'Invalid username or password' });
     }
 
     // Verify password
     const isValid = await User.verifyPassword(password, user.password);
     if (!isValid) {
-      return res.status(401).json({ error: 'Invalid email or password' });
+      return res.status(401).json({ error: 'Invalid username or password' });
     }
 
     // Generate token
@@ -98,6 +99,32 @@ router.post('/login', [
     res.status(500).json({ error: 'Error during login' });
   }
 });
+
+// Google OAuth Routes
+router.get('/google',
+  passport.authenticate('google', { scope: ['profile', 'email'] })
+);
+
+router.get('/google/callback',
+  passport.authenticate('google', { failureRedirect: '/?error=google_auth_failed' }),
+  async (req, res) => {
+    try {
+      // Generate JWT token for the authenticated user
+      const token = jwt.sign(
+        { id: req.user.id, username: req.user.username, role: req.user.role },
+        process.env.JWT_SECRET,
+        { expiresIn: '7d' }
+      );
+
+      // Redirect to frontend with token
+      const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+      res.redirect(`${frontendUrl}?token=${token}&username=${encodeURIComponent(req.user.username)}`);
+    } catch (error) {
+      console.error('Google OAuth callback error:', error);
+      res.redirect('/?error=google_auth_error');
+    }
+  }
+);
 
 // Get current user
 router.get('/me', authenticateToken, async (req, res) => {

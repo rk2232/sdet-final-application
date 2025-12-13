@@ -102,10 +102,16 @@ Body: {
 ```
 POST /api/auth/login
 Body: {
-  "email": "string",
+  "username": "string",
   "password": "string"
 }
 ```
+
+#### Google OAuth Login
+```
+GET /api/auth/google
+```
+Redirects to Google OAuth. After authentication, redirects back with JWT token.
 
 #### Get Current User
 ```

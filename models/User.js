@@ -2,13 +2,14 @@ const db = require('../config/database');
 const bcrypt = require('bcryptjs');
 
 class User {
-  static async create(username, email, password, role = 'user') {
-    const hashedPassword = await bcrypt.hash(password, 10);
+  static async create(username, email, password = null, role = 'user', googleId = null) {
+    // If password is provided, hash it; otherwise set to null (for OAuth users)
+    const hashedPassword = password ? await bcrypt.hash(password, 10) : null;
     
     return new Promise((resolve, reject) => {
       db.run(
-        'INSERT INTO users (username, email, password, role) VALUES (?, ?, ?, ?)',
-        [username, email, hashedPassword, role],
+        'INSERT INTO users (username, email, password, role, google_id) VALUES (?, ?, ?, ?, ?)',
+        [username, email, hashedPassword, role, googleId],
         function(err) {
           if (err) reject(err);
           else resolve({ id: this.lastID, username, email, role });
@@ -29,6 +30,15 @@ class User {
   static async findByUsername(username) {
     return new Promise((resolve, reject) => {
       db.get('SELECT * FROM users WHERE username = ?', [username], (err, row) => {
+        if (err) reject(err);
+        else resolve(row);
+      });
+    });
+  }
+
+  static async findByGoogleId(googleId) {
+    return new Promise((resolve, reject) => {
+      db.get('SELECT * FROM users WHERE google_id = ?', [googleId], (err, row) => {
         if (err) reject(err);
         else resolve(row);
       });

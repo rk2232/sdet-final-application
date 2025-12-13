@@ -274,6 +274,47 @@ body {
     background: var(--secondary-color);
 }
 
+/* Google Sign-in Button */
+.btn-google {
+    width: 100%;
+    padding: 0.75rem;
+    background: white;
+    color: #333;
+    border: 1px solid #dadce0;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s;
+    margin-top: 1rem;
+}
+
+.btn-google:hover {
+    background: #f8f9fa;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.divider {
+    display: flex;
+    align-items: center;
+    text-align: center;
+    margin: 1.5rem 0;
+    color: var(--text-secondary);
+}
+
+.divider::before,
+.divider::after {
+    content: '';
+    flex: 1;
+    border-bottom: 1px solid rgba(99, 102, 241, 0.3);
+}
+
+.divider span {
+    padding: 0 1rem;
+}
+
 /* Profile Page */
 .profile-container {
     display: grid;
