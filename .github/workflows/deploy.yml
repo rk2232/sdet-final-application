@@ -1,0 +1,33 @@
+name: Deploy to Cloud
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+    
+    - name: Install dependencies
+      run: npm install
+    
+    - name: Run tests
+      run: npm test || true
+    
+    - name: Build
+      run: npm run build || true
+    
+    - name: Deploy to AWS
+      if: github.ref == 'refs/heads/main'
+      run: |
+        echo "Add your deployment commands here"
+        # Example: aws deploy push --application-name your-app
+

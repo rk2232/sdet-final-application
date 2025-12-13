@@ -1,0 +1,20 @@
+runtime: nodejs18
+
+env: standard
+
+instance_class: F1
+
+automatic_scaling:
+  min_instances: 1
+  max_instances: 10
+  target_cpu_utilization: 0.6
+
+env_variables:
+  NODE_ENV: production
+  PORT: 8080
+  # Add your JWT_SECRET and TMDB_API_KEY in App Engine settings
+
+handlers:
+  - url: /.*
+    script: auto
+
