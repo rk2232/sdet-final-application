@@ -3,5 +3,8 @@
 
 const app = require('../server');
 
-module.exports = app;
-
+// Export the Express app as a serverless function
+module.exports = (req, res) => {
+  // Handle the request
+  app(req, res);
+};

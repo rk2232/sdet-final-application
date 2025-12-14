@@ -33,9 +33,6 @@ app.use(session({
 app.use(passport.initialize());
 app.use(passport.session());
 
-// Serve static files from public directory
-app.use(express.static(path.join(__dirname, 'public')));
-
 // Health check endpoint
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', message: 'Movie Recommendation System API is running' });
@@ -47,8 +44,19 @@ app.use('/api/movies', movieRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/recommendations', recommendationRoutes);
 
-// Serve frontend
-app.get('/', (req, res) => {
+// Serve static files from public directory
+app.use(express.static(path.join(__dirname, 'public'), {
+  maxAge: '1d',
+  etag: true
+}));
+
+// Serve frontend - handle all non-API routes (SPA routing)
+app.get('*', (req, res, next) => {
+  // Don't serve HTML for API routes
+  if (req.path.startsWith('/api/')) {
+    return next();
+  }
+  // Serve index.html for all other routes (SPA routing)
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
