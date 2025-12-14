@@ -312,7 +312,8 @@ async function loadPopularMovies() {
         const response = await fetch(`${API_BASE_URL}/movies/popular`);
         
         if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+            const errorData = await response.json().catch(() => ({}));
+            throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
         }
         
         const data = await response.json();
@@ -321,12 +322,15 @@ async function loadPopularMovies() {
         if (data.movies && data.movies.length > 0) {
             displayMovies(data.movies, 'popular-movies');
         } else {
-            container.innerHTML = '<p style="text-align: center; color: var(--text-secondary);">No movies found. Please check your TMDB API key in the .env file.</p>';
+            container.innerHTML = '<p style="text-align: center; color: var(--text-secondary); padding: 2rem;">No movies found. Please check your TMDB API key in the Vercel environment variables.</p>';
         }
     } catch (error) {
         hideLoading();
         console.error('Error loading movies:', error);
-        container.innerHTML = '<p style="text-align: center; color: var(--text-secondary);">Unable to load movies. Make sure the server is running and your TMDB API key is configured.</p>';
+        const errorMessage = error.message.includes('TMDB') || error.message.includes('API key') 
+            ? 'TMDB API key is not configured. Please add TMDB_API_KEY to your Vercel environment variables.'
+            : 'Unable to load movies. The API server may not be responding. Check the browser console for details.';
+        container.innerHTML = `<p style="text-align: center; color: var(--text-secondary); padding: 2rem;">${errorMessage}</p>`;
     }
 }
 

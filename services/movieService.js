@@ -89,5 +89,14 @@ class MovieService {
   }
 }
 
-module.exports = new MovieService(process.env.TMDB_API_KEY);
+// Create movie service instance
+const movieService = new MovieService(process.env.TMDB_API_KEY);
+
+// Log if API key is missing (helpful for debugging)
+if (!process.env.TMDB_API_KEY || process.env.TMDB_API_KEY === 'your-tmdb-api-key-here') {
+  console.warn('⚠️  TMDB_API_KEY is not configured. Movie features will not work.');
+  console.warn('   Please add TMDB_API_KEY to your Vercel environment variables.');
+}
+
+module.exports = movieService;
 

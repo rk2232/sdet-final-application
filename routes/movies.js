@@ -33,6 +33,13 @@ router.get('/search', async (req, res) => {
 // Get popular movies
 router.get('/popular', async (req, res) => {
   try {
+    if (!process.env.TMDB_API_KEY || process.env.TMDB_API_KEY === 'your-tmdb-api-key-here') {
+      return res.status(503).json({ 
+        error: 'TMDB API key is not configured. Please add TMDB_API_KEY to your environment variables.',
+        movies: []
+      });
+    }
+
     const { page = 1 } = req.query;
     const results = await movieService.getPopularMovies(page);
     const movies = results.results.map(movie => ({
@@ -48,7 +55,10 @@ router.get('/popular', async (req, res) => {
     });
   } catch (error) {
     console.error('Error fetching popular movies:', error);
-    res.status(500).json({ error: 'Error fetching popular movies' });
+    const errorMessage = error.response?.status === 401 
+      ? 'Invalid TMDB API key. Please check your TMDB_API_KEY environment variable.'
+      : 'Error fetching popular movies. Please check your TMDB API key configuration.';
+    res.status(500).json({ error: errorMessage, movies: [] });
   }
 });
 
