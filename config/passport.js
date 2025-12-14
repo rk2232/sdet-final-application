@@ -4,11 +4,13 @@ const User = require('../models/User');
 const UserPreferences = require('../models/UserPreferences');
 const jwt = require('jsonwebtoken');
 
-passport.use(new GoogleStrategy({
-    clientID: process.env.GOOGLE_CLIENT_ID,
-    clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-    callbackURL: process.env.GOOGLE_CALLBACK_URL || "/api/auth/google/callback"
-  },
+// Only configure Google OAuth if credentials are provided
+if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
+  passport.use(new GoogleStrategy({
+      clientID: process.env.GOOGLE_CLIENT_ID,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+      callbackURL: process.env.GOOGLE_CALLBACK_URL || "/api/auth/google/callback"
+    },
   async (accessToken, refreshToken, profile, done) => {
     try {
       // Check if user exists with this Google ID
@@ -62,7 +64,10 @@ passport.use(new GoogleStrategy({
       return done(error, null);
     }
   }
-));
+  ));
+} else {
+  console.log('Google OAuth not configured. Set GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET in .env to enable Google sign-in.');
+}
 
 passport.serializeUser((user, done) => {
   done(null, user.id);

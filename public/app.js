@@ -182,7 +182,17 @@ async function handleLogin(e) {
 
 function loginWithGoogle() {
     // Redirect to Google OAuth endpoint
-    window.location.href = `${API_BASE_URL}/auth/google`;
+    fetch(`${API_BASE_URL}/auth/google`)
+      .then(response => {
+        if (response.ok) {
+          window.location.href = `${API_BASE_URL}/auth/google`;
+        } else {
+          showToast('Google sign-in is not configured. Please use username/password login.', 'error');
+        }
+      })
+      .catch(() => {
+        showToast('Google sign-in is not configured. Please use username/password login.', 'error');
+      });
 }
 
 async function handleRegister(e) {

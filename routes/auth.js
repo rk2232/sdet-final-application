@@ -100,31 +100,38 @@ router.post('/login', [
   }
 });
 
-// Google OAuth Routes
-router.get('/google',
-  passport.authenticate('google', { scope: ['profile', 'email'] })
-);
+// Google OAuth Routes (only if configured)
+if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
+  router.get('/google',
+    passport.authenticate('google', { scope: ['profile', 'email'] })
+  );
 
-router.get('/google/callback',
-  passport.authenticate('google', { failureRedirect: '/?error=google_auth_failed' }),
-  async (req, res) => {
-    try {
-      // Generate JWT token for the authenticated user
-      const token = jwt.sign(
-        { id: req.user.id, username: req.user.username, role: req.user.role },
-        process.env.JWT_SECRET,
-        { expiresIn: '7d' }
-      );
+  router.get('/google/callback',
+    passport.authenticate('google', { failureRedirect: '/?error=google_auth_failed' }),
+    async (req, res) => {
+      try {
+        // Generate JWT token for the authenticated user
+        const token = jwt.sign(
+          { id: req.user.id, username: req.user.username, role: req.user.role },
+          process.env.JWT_SECRET,
+          { expiresIn: '7d' }
+        );
 
-      // Redirect to frontend with token
-      const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
-      res.redirect(`${frontendUrl}?token=${token}&username=${encodeURIComponent(req.user.username)}`);
-    } catch (error) {
-      console.error('Google OAuth callback error:', error);
-      res.redirect('/?error=google_auth_error');
+        // Redirect to frontend with token
+        const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+        res.redirect(`${frontendUrl}?token=${token}&username=${encodeURIComponent(req.user.username)}`);
+      } catch (error) {
+        console.error('Google OAuth callback error:', error);
+        res.redirect('/?error=google_auth_error');
+      }
     }
-  }
-);
+  );
+} else {
+  // Return error if Google OAuth is not configured
+  router.get('/google', (req, res) => {
+    res.status(503).json({ error: 'Google OAuth is not configured. Please set GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET in your .env file.' });
+  });
+}
 
 // Get current user
 router.get('/me', authenticateToken, async (req, res) => {
