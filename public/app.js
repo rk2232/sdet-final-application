@@ -11,7 +11,12 @@ document.addEventListener('DOMContentLoaded', () => {
     handleGoogleCallback();
     checkAuth();
     setupEventListeners();
-    loadPopularMovies();
+    
+    // Only load movies if we're on the home page
+    const currentPage = document.querySelector('.page.active');
+    if (currentPage && currentPage.id === 'home-page') {
+        loadPopularMovies();
+    }
 });
 
 // Handle Google OAuth callback
@@ -49,9 +54,9 @@ function checkAuth() {
     authToken = localStorage.getItem('authToken');
     if (authToken) {
         fetchUserProfile();
-    } else {
-        showPage('login');
     }
+    // Don't automatically redirect to login - let users browse the home page
+    updateAuthUI();
 }
 
 // Setup Event Listeners
@@ -125,6 +130,12 @@ function showPage(pageName) {
         loadProfile();
     } else if (pageName === 'movies') {
         loadPopularMovies();
+    } else if (pageName === 'home') {
+        // Reload popular movies when showing home page
+        const container = document.getElementById('popular-movies');
+        if (container && container.innerHTML === '') {
+            loadPopularMovies();
+        }
     }
 }
 
@@ -268,18 +279,29 @@ async function fetchUserProfile() {
 
 // Movie Functions
 async function loadPopularMovies() {
+    const container = document.getElementById('popular-movies');
+    if (!container) return;
+    
     try {
         showLoading();
         const response = await fetch(`${API_BASE_URL}/movies/popular`);
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
         const data = await response.json();
         hideLoading();
 
-        if (data.movies) {
+        if (data.movies && data.movies.length > 0) {
             displayMovies(data.movies, 'popular-movies');
+        } else {
+            container.innerHTML = '<p style="text-align: center; color: var(--text-secondary);">No movies found. Please check your TMDB API key in the .env file.</p>';
         }
     } catch (error) {
         hideLoading();
-        showToast('Error loading movies', 'error');
+        console.error('Error loading movies:', error);
+        container.innerHTML = '<p style="text-align: center; color: var(--text-secondary);">Unable to load movies. Make sure the server is running and your TMDB API key is configured.</p>';
     }
 }
 
@@ -624,15 +646,25 @@ function updateStatsChart(stats) {
 
 // Utility Functions
 function showLoading() {
-    document.getElementById('loading').classList.remove('hidden');
+    const loading = document.getElementById('loading');
+    if (loading) {
+        loading.classList.remove('hidden');
+    }
 }
 
 function hideLoading() {
-    document.getElementById('loading').classList.add('hidden');
+    const loading = document.getElementById('loading');
+    if (loading) {
+        loading.classList.add('hidden');
+    }
 }
 
 function showToast(message, type = 'success') {
     const toast = document.getElementById('toast');
+    if (!toast) {
+        console.log(`Toast: ${message}`);
+        return;
+    }
     toast.textContent = message;
     toast.className = `toast ${type} show`;
 
