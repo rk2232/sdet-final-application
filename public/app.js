@@ -828,6 +828,230 @@ function getFallbackMovies() {
             poster_url: 'https://via.placeholder.com/200x300?text=Silence',
             overview: 'A young F.B.I. cadet must receive the help of an incarcerated cannibalistic killer to catch another serial killer.',
             release_date: '1991-02-14'
+        },
+        {
+            id: 13,
+            title: 'Schindler\'s List',
+            vote_average: 8.9,
+            poster_url: 'https://via.placeholder.com/200x300?text=Schindler',
+            overview: 'In German-occupied Poland during World War II, industrialist Oskar Schindler gradually becomes concerned for his Jewish workforce.',
+            release_date: '1993-12-15'
+        },
+        {
+            id: 14,
+            title: 'The Godfather Part II',
+            vote_average: 9.0,
+            poster_url: 'https://via.placeholder.com/200x300?text=Godfather+II',
+            overview: 'The early life and career of Vito Corleone in 1920s New York is portrayed, while his son, Michael, expands and tightens his grip on the family crime syndicate.',
+            release_date: '1974-12-20'
+        },
+        {
+            id: 15,
+            title: '12 Angry Men',
+            vote_average: 9.0,
+            poster_url: 'https://via.placeholder.com/200x300?text=12+Angry+Men',
+            overview: 'A jury holdout attempts to prevent a miscarriage of justice by forcing his colleagues to reconsider the evidence.',
+            release_date: '1957-04-10'
+        },
+        {
+            id: 16,
+            title: 'The Lord of the Rings: The Fellowship of the Ring',
+            vote_average: 8.8,
+            poster_url: 'https://via.placeholder.com/200x300?text=Fellowship',
+            overview: 'A meek Hobbit from the Shire and eight companions set out on a journey to destroy the powerful One Ring and save Middle-earth.',
+            release_date: '2001-12-19'
+        },
+        {
+            id: 17,
+            title: 'Parasite',
+            vote_average: 8.5,
+            poster_url: 'https://via.placeholder.com/200x300?text=Parasite',
+            overview: 'Greed and class discrimination threaten the newly formed symbiotic relationship between the wealthy Park family and the destitute Kim clan.',
+            release_date: '2019-05-30'
+        },
+        {
+            id: 18,
+            title: 'The Green Mile',
+            vote_average: 8.6,
+            poster_url: 'https://via.placeholder.com/200x300?text=Green+Mile',
+            overview: 'The lives of guards on Death Row are affected by one of their charges: a black man accused of child murder and rape.',
+            release_date: '1999-12-10'
+        },
+        {
+            id: 19,
+            title: 'The Lord of the Rings: The Two Towers',
+            vote_average: 8.7,
+            poster_url: 'https://via.placeholder.com/200x300?text=Two+Towers',
+            overview: 'While Frodo and Sam edge closer to Mordor with the help of the shifty Gollum, the divided fellowship makes a stand against Sauron.',
+            release_date: '2002-12-18'
+        },
+        {
+            id: 20,
+            title: 'Se7en',
+            vote_average: 8.6,
+            poster_url: 'https://via.placeholder.com/200x300?text=Se7en',
+            overview: 'Two detectives, a rookie and a veteran, hunt a serial killer who uses the seven deadly sins as his motives.',
+            release_date: '1995-09-22'
+        },
+        {
+            id: 21,
+            title: 'The Usual Suspects',
+            vote_average: 8.5,
+            poster_url: 'https://via.placeholder.com/200x300?text=Usual+Suspects',
+            overview: 'A sole survivor tells of the twisty events leading up to a horrific gun battle on a boat, which began when five criminals met at a seemingly random police lineup.',
+            release_date: '1995-08-16'
+        },
+        {
+            id: 22,
+            title: 'Léon: The Professional',
+            vote_average: 8.5,
+            poster_url: 'https://via.placeholder.com/200x300?text=Leon',
+            overview: 'Mathilda, a 12-year-old girl, is reluctantly taken in by Léon, a professional assassin, after her family is murdered.',
+            release_date: '1994-11-18'
+        },
+        {
+            id: 23,
+            title: 'Saving Private Ryan',
+            vote_average: 8.6,
+            poster_url: 'https://via.placeholder.com/200x300?text=Saving+Ryan',
+            overview: 'Following the Normandy Landings, a group of U.S. soldiers go behind enemy lines to retrieve a paratrooper whose brothers have been killed in action.',
+            release_date: '1998-07-24'
+        },
+        {
+            id: 24,
+            title: 'The Prestige',
+            vote_average: 8.5,
+            poster_url: 'https://via.placeholder.com/200x300?text=Prestige',
+            overview: 'After a tragic accident, two stage magicians engage in a battle to create the ultimate illusion while sacrificing everything they have.',
+            release_date: '2006-10-20'
+        },
+        {
+            id: 25,
+            title: 'Gladiator',
+            vote_average: 8.5,
+            poster_url: 'https://via.placeholder.com/200x300?text=Gladiator',
+            overview: 'A former Roman General sets out to exact vengeance against the corrupt emperor who murdered his family and sent him into slavery.',
+            release_date: '2000-05-05'
+        },
+        {
+            id: 26,
+            title: 'Whiplash',
+            vote_average: 8.5,
+            poster_url: 'https://via.placeholder.com/200x300?text=Whiplash',
+            overview: 'A promising young drummer enrolls at a cut-throat music conservatory where his dreams of greatness are mentored by an instructor who will stop at nothing to realize a student\'s potential.',
+            release_date: '2014-10-10'
+        },
+        {
+            id: 27,
+            title: 'The Departed',
+            vote_average: 8.5,
+            poster_url: 'https://via.placeholder.com/200x300?text=Departed',
+            overview: 'An undercover cop and a mole in the police attempt to identify each other while infiltrating an Irish gang in South Boston.',
+            release_date: '2006-10-06'
+        },
+        {
+            id: 28,
+            title: 'The Lion King',
+            vote_average: 8.5,
+            poster_url: 'https://via.placeholder.com/200x300?text=Lion+King',
+            overview: 'Lion prince Simba and his father are targeted by his bitter uncle, who wants to ascend the throne himself.',
+            release_date: '1994-06-24'
+        },
+        {
+            id: 29,
+            title: 'American History X',
+            vote_average: 8.5,
+            poster_url: 'https://via.placeholder.com/200x300?text=American+X',
+            overview: 'A former neo-nazi skinhead tries to prevent his younger brother from going down the same wrong path that he did.',
+            release_date: '1998-11-20'
+        },
+        {
+            id: 30,
+            title: 'The Shining',
+            vote_average: 8.4,
+            poster_url: 'https://via.placeholder.com/200x300?text=Shining',
+            overview: 'A family heads to an isolated hotel for the winter where a sinister presence influences the father into violence.',
+            release_date: '1980-05-23'
+        },
+        {
+            id: 31,
+            title: 'Django Unchained',
+            vote_average: 8.4,
+            poster_url: 'https://via.placeholder.com/200x300?text=Django',
+            overview: 'With the help of a German bounty hunter, a freed slave sets out to rescue his wife from a brutal Mississippi plantation owner.',
+            release_date: '2012-12-25'
+        },
+        {
+            id: 32,
+            title: 'WALL-E',
+            vote_average: 8.4,
+            poster_url: 'https://via.placeholder.com/200x300?text=WALL-E',
+            overview: 'In the distant future, a small waste-collecting robot inadvertently embarks on a space journey that will ultimately decide the fate of mankind.',
+            release_date: '2008-06-27'
+        },
+        {
+            id: 33,
+            title: 'Avengers: Infinity War',
+            vote_average: 8.4,
+            poster_url: 'https://via.placeholder.com/200x300?text=Infinity+War',
+            overview: 'The Avengers and their allies must be willing to sacrifice all in an attempt to defeat the powerful Thanos.',
+            release_date: '2018-04-27'
+        },
+        {
+            id: 34,
+            title: 'Spirited Away',
+            vote_average: 8.6,
+            poster_url: 'https://via.placeholder.com/200x300?text=Spirited+Away',
+            overview: 'During her family\'s move to the suburbs, a sullen 10-year-old girl wanders into a world ruled by gods, witches, and spirits.',
+            release_date: '2001-07-20'
+        },
+        {
+            id: 35,
+            title: 'The Pianist',
+            vote_average: 8.5,
+            poster_url: 'https://via.placeholder.com/200x300?text=Pianist',
+            overview: 'A Polish Jewish musician struggles to survive the destruction of the Warsaw ghetto of World War II.',
+            release_date: '2002-09-24'
+        },
+        {
+            id: 36,
+            title: 'Terminator 2: Judgment Day',
+            vote_average: 8.5,
+            poster_url: 'https://via.placeholder.com/200x300?text=T2',
+            overview: 'A cyborg, identical to the one who failed to kill Sarah Connor, must now protect her ten-year-old son from a more advanced cyborg.',
+            release_date: '1991-07-03'
+        },
+        {
+            id: 37,
+            title: 'Back to the Future',
+            vote_average: 8.5,
+            poster_url: 'https://via.placeholder.com/200x300?text=BTTF',
+            overview: 'Marty McFly, a 17-year-old high school student, is accidentally sent thirty years into the past in a time-traveling DeLorean.',
+            release_date: '1985-07-03'
+        },
+        {
+            id: 38,
+            title: 'The Avengers',
+            vote_average: 8.0,
+            poster_url: 'https://via.placeholder.com/200x300?text=Avengers',
+            overview: 'Earth\'s mightiest heroes must come together and learn to fight as a team if they are going to stop the mischievous Loki.',
+            release_date: '2012-05-04'
+        },
+        {
+            id: 39,
+            title: 'Toy Story',
+            vote_average: 8.3,
+            poster_url: 'https://via.placeholder.com/200x300?text=Toy+Story',
+            overview: 'A cowboy doll is profoundly threatened and jealous when a new spaceman figure supplants him as top toy in a boy\'s room.',
+            release_date: '1995-11-22'
+        },
+        {
+            id: 40,
+            title: 'Joker',
+            vote_average: 8.2,
+            poster_url: 'https://via.placeholder.com/200x300?text=Joker',
+            overview: 'During the 1980s, a failed stand-up comedian is driven insane and turns to a life of crime and chaos in Gotham City.',
+            release_date: '2019-10-04'
         }
     ];
 }
