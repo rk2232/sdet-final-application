@@ -142,12 +142,33 @@ function showPage(pageName) {
     });
 
     // Load page-specific content
-    if (pageName === 'recommendations' && authToken) {
-        loadRecommendations();
+    if (pageName === 'recommendations') {
+        // Always try to load recommendations, show fallback if not logged in or API fails
+        if (authToken) {
+            loadRecommendations();
+        } else {
+            // Show fallback movies even if not logged in
+            const container = document.getElementById('recommendations-results');
+            if (container) {
+                const fallbackMovies = getFallbackMovies();
+                displayMovies(fallbackMovies, 'recommendations-results');
+                showToast('Please login for personalized recommendations', 'warning');
+            }
+        }
     } else if (pageName === 'profile' && authToken) {
         loadProfile();
     } else if (pageName === 'movies') {
-        loadPopularMovies();
+        // Always load movies when showing movies page
+        const container = document.getElementById('movies-results');
+        if (container) {
+            // Show fallback movies immediately
+            const fallbackMovies = getFallbackMovies();
+            displayMovies(fallbackMovies, 'movies-results');
+            // Then try to load from API
+            setTimeout(() => {
+                loadMoviesForMoviesPage();
+            }, 100);
+        }
     } else if (pageName === 'home') {
         // Reload popular movies when showing home page
         const container = document.getElementById('popular-movies');
@@ -307,6 +328,10 @@ async function loadPopularMovies() {
     const container = document.getElementById('popular-movies');
     if (!container) return;
     
+    // Show fallback movies immediately
+    const fallbackMovies = getFallbackMovies();
+    displayMovies(fallbackMovies, 'popular-movies');
+    
     try {
         showLoading();
         const response = await fetch(`${API_BASE_URL}/movies/popular`);
@@ -321,19 +346,32 @@ async function loadPopularMovies() {
 
         if (data.movies && data.movies.length > 0) {
             displayMovies(data.movies, 'popular-movies');
-        } else {
-            // Show fallback movies if API returns empty
-            const fallbackMovies = getFallbackMovies();
-            displayMovies(fallbackMovies, 'popular-movies');
-            showToast('Showing fallback movies. Please configure TMDB API key for real data.', 'warning');
         }
+        // If API returns empty, keep fallback movies
     } catch (error) {
         hideLoading();
         console.error('Error loading movies:', error);
-        // Show fallback movies on error
-        const fallbackMovies = getFallbackMovies();
-        displayMovies(fallbackMovies, 'popular-movies');
-        showToast('Using fallback movies. API may not be configured.', 'warning');
+        // Keep fallback movies displayed
+    }
+}
+
+// Load movies specifically for the Movies page
+async function loadMoviesForMoviesPage() {
+    const container = document.getElementById('movies-results');
+    if (!container) return;
+    
+    try {
+        const response = await fetch(`${API_BASE_URL}/movies/popular`);
+        
+        if (response.ok) {
+            const data = await response.json();
+            if (data.movies && data.movies.length > 0) {
+                displayMovies(data.movies, 'movies-results');
+            }
+        }
+    } catch (error) {
+        console.error('Error loading movies for movies page:', error);
+        // Keep fallback movies displayed
     }
 }
 
@@ -524,15 +562,23 @@ async function addToWatchHistory(movieId, movieTitle) {
 
 // Recommendations
 async function loadRecommendations() {
-    if (!authToken) {
-        showToast('Please login to see recommendations', 'error');
-        showPage('login');
+    const container = document.getElementById('recommendations-results');
+    if (!container) {
+        console.error('Recommendations container not found');
         return;
     }
 
-    const container = document.getElementById('recommendations-results');
-    if (!container) return;
+    // Always show fallback movies first (for immediate display)
+    const fallbackMovies = getFallbackMovies();
+    displayMovies(fallbackMovies, 'recommendations-results');
 
+    // If not logged in, just show fallback and return
+    if (!authToken) {
+        showToast('Please login for personalized recommendations', 'warning');
+        return;
+    }
+
+    // Try to load personalized recommendations
     try {
         showLoading();
         const response = await fetch(`${API_BASE_URL}/recommendations`, {
@@ -548,18 +594,15 @@ async function loadRecommendations() {
 
         if (data.recommendations && data.recommendations.length > 0) {
             displayMovies(data.recommendations, 'recommendations-results');
+            showToast('Personalized recommendations loaded!', 'success');
         } else {
-            // Show fallback movies if no recommendations
-            const fallbackMovies = getFallbackMovies();
-            displayMovies(fallbackMovies, 'recommendations-results');
-            showToast('No personalized recommendations yet. Showing popular movies instead.', 'success');
+            // Keep fallback movies, just show message
+            showToast('No personalized recommendations yet. Showing popular movies.', 'success');
         }
     } catch (error) {
         hideLoading();
         console.error('Error loading recommendations:', error);
-        // Show fallback movies on error
-        const fallbackMovies = getFallbackMovies();
-        displayMovies(fallbackMovies, 'recommendations-results');
+        // Keep fallback movies displayed
         showToast('Using fallback recommendations. API may not be configured.', 'warning');
     }
 }
