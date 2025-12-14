@@ -12,10 +12,21 @@ document.addEventListener('DOMContentLoaded', () => {
     checkAuth();
     setupEventListeners();
     
-    // Only load movies if we're on the home page
+    // Load movies based on current page
     const currentPage = document.querySelector('.page.active');
-    if (currentPage && currentPage.id === 'home-page') {
-        loadPopularMovies();
+    if (currentPage) {
+        if (currentPage.id === 'home-page') {
+            loadPopularMovies();
+        } else if (currentPage.id === 'movies-page') {
+            // Load movies for movies page immediately
+            setTimeout(() => {
+                const fallbackMovies = getFallbackMovies();
+                displayMovies(fallbackMovies, 'movies-results');
+            }, 100);
+        } else if (currentPage.id === 'recommendations-page') {
+            // Load recommendations
+            loadRecommendations();
+        }
     }
 });
 
@@ -159,15 +170,19 @@ function showPage(pageName) {
         loadProfile();
     } else if (pageName === 'movies') {
         // Always load movies when showing movies page
+        // Use setTimeout to ensure DOM is ready
+        setTimeout(() => {
+            loadMoviesForMoviesPage();
+        }, 50);
+        
+        // Also try immediately in case setTimeout doesn't work
         const container = document.getElementById('movies-results');
         if (container) {
-            // Show fallback movies immediately
             const fallbackMovies = getFallbackMovies();
-            displayMovies(fallbackMovies, 'movies-results');
-            // Then try to load from API
-            setTimeout(() => {
-                loadMoviesForMoviesPage();
-            }, 100);
+            if (fallbackMovies && fallbackMovies.length > 0) {
+                console.log('Loading', fallbackMovies.length, 'movies into movies-results');
+                displayMovies(fallbackMovies, 'movies-results');
+            }
         }
     } else if (pageName === 'home') {
         // Reload popular movies when showing home page
@@ -358,14 +373,34 @@ async function loadPopularMovies() {
 // Load movies specifically for the Movies page
 async function loadMoviesForMoviesPage() {
     const container = document.getElementById('movies-results');
-    if (!container) return;
+    if (!container) {
+        console.error('movies-results container not found');
+        // Try again after a short delay
+        setTimeout(() => {
+            const retryContainer = document.getElementById('movies-results');
+            if (retryContainer) {
+                const fallbackMovies = getFallbackMovies();
+                displayMovies(fallbackMovies, 'movies-results');
+            }
+        }, 200);
+        return;
+    }
     
+    // Always show fallback movies first
+    const fallbackMovies = getFallbackMovies();
+    if (fallbackMovies && fallbackMovies.length > 0) {
+        console.log('Displaying', fallbackMovies.length, 'fallback movies');
+        displayMovies(fallbackMovies, 'movies-results');
+    }
+    
+    // Then try to load from API
     try {
         const response = await fetch(`${API_BASE_URL}/movies/popular`);
         
         if (response.ok) {
             const data = await response.json();
             if (data.movies && data.movies.length > 0) {
+                console.log('Loaded', data.movies.length, 'movies from API');
                 displayMovies(data.movies, 'movies-results');
             }
         }
@@ -426,6 +461,7 @@ async function searchMovies() {
 }
 
 function displayMovies(movies, containerId) {
+    console.log(`displayMovies called with ${movies?.length || 0} movies for container: ${containerId}`);
     const container = document.getElementById(containerId);
     if (!container) {
         console.error(`Container with ID "${containerId}" not found`);
@@ -433,15 +469,17 @@ function displayMovies(movies, containerId) {
     }
 
     if (!movies || movies.length === 0) {
+        console.warn('No movies to display');
         container.innerHTML = '<p style="text-align: center; color: var(--text-secondary); padding: 2rem;">No movies found.</p>';
         return;
     }
 
     container.innerHTML = '';
+    console.log(`Displaying ${movies.length} movies in container ${containerId}`);
 
-    movies.forEach(movie => {
+    movies.forEach((movie, index) => {
         if (!movie || !movie.title) {
-            console.warn('Invalid movie data:', movie);
+            console.warn('Invalid movie data at index', index, ':', movie);
             return;
         }
 
@@ -462,6 +500,8 @@ function displayMovies(movies, containerId) {
         card.addEventListener('click', () => showMovieDetails(movie.id));
         container.appendChild(card);
     });
+    
+    console.log(`Successfully displayed ${movies.length} movies`);
 }
 
 async function showMovieDetails(movieId) {
