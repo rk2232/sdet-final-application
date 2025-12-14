@@ -18,7 +18,13 @@ document.addEventListener('DOMContentLoaded', () => {
         if (currentPage.id === 'home-page') {
             loadPopularMovies();
         } else if (currentPage.id === 'movies-page') {
-            // Load movies for movies page immediately
+            // Load movies for movies page immediately - direct approach
+            const container = document.getElementById('movies-results');
+            if (container) {
+                const fallbackMovies = getFallbackMovies();
+                console.log('Initial load: displaying', fallbackMovies.length, 'movies');
+                displayMovies(fallbackMovies, 'movies-results');
+            }
             forceLoadMoviesPage();
         } else if (currentPage.id === 'recommendations-page') {
             // Load recommendations
@@ -184,8 +190,39 @@ function showPage(pageName) {
     } else if (pageName === 'profile' && authToken) {
         loadProfile();
     } else if (pageName === 'movies') {
-        // Force load movies immediately and with delays
-        forceLoadMoviesPage();
+        // Force load movies immediately - don't wait for anything
+        console.log('Movies page shown, loading movies immediately');
+        
+        // Direct approach - load movies NOW
+        function loadMoviesDirectly() {
+            const container = document.getElementById('movies-results');
+            if (container) {
+                const fallbackMovies = getFallbackMovies();
+                if (fallbackMovies && fallbackMovies.length > 0) {
+                    console.log('Loading', fallbackMovies.length, 'fallback movies directly');
+                    displayMovies(fallbackMovies, 'movies-results');
+                    return true;
+                } else {
+                    console.error('getFallbackMovies() returned empty or invalid data');
+                }
+            } else {
+                console.error('movies-results container not found');
+            }
+            return false;
+        }
+        
+        // Try immediately
+        if (!loadMoviesDirectly()) {
+            // Retry with delays
+            setTimeout(() => loadMoviesDirectly(), 10);
+            setTimeout(() => loadMoviesDirectly(), 50);
+            setTimeout(() => loadMoviesDirectly(), 100);
+            setTimeout(() => loadMoviesDirectly(), 200);
+            setTimeout(() => loadMoviesDirectly(), 500);
+        }
+        
+        // Try API in background (non-blocking)
+        setTimeout(() => loadMoviesForMoviesPage(), 1000);
     } else if (pageName === 'home') {
         // Reload popular movies when showing home page
         const container = document.getElementById('popular-movies');
@@ -417,12 +454,32 @@ async function loadMoviesForMoviesPage() {
     const container = document.getElementById('movies-results');
     if (!container) {
         console.error('movies-results container not found in loadMoviesForMoviesPage');
+        // Ensure fallback movies are shown even if container not found initially
+        setTimeout(() => {
+            const retryContainer = document.getElementById('movies-results');
+            if (retryContainer) {
+                const fallbackMovies = getFallbackMovies();
+                displayMovies(fallbackMovies, 'movies-results');
+            }
+        }, 300);
         return;
     }
     
-    // Try to load from API
+    // Always ensure fallback movies are shown first
+    const fallbackMovies = getFallbackMovies();
+    if (fallbackMovies && fallbackMovies.length > 0) {
+        const currentContent = container.innerHTML.trim();
+        if (!currentContent || currentContent === '') {
+            console.log('Container empty, loading fallback movies');
+            displayMovies(fallbackMovies, 'movies-results');
+        }
+    }
+    
+    // Try to load from API (non-blocking)
     try {
-        const response = await fetch(`${API_BASE_URL}/movies/popular`);
+        const response = await fetch(`${API_BASE_URL}/movies/popular`, {
+            signal: AbortSignal.timeout(3000) // 3 second timeout
+        });
         
         if (response.ok) {
             const data = await response.json();
@@ -433,7 +490,7 @@ async function loadMoviesForMoviesPage() {
         }
     } catch (error) {
         console.error('Error loading movies for movies page:', error);
-        // Keep fallback movies displayed
+        // Keep fallback movies displayed - they're already shown above
     }
 }
 
@@ -564,29 +621,29 @@ function renderMoviesToContainer(movies, container) {
     console.log(`Verified: ${movieCards.length} movie cards in DOM`);
     
     if (movieCards.length === 0) {
-        console.error('No movie cards were added to the container!');
-        // Last resort - add HTML directly
-        const moviesHTML = movies.map(movie => `
-            <div class="movie-card">
-                <img src="${movie.poster_url || 'https://via.placeholder.com/200x300?text=No+Image'}" 
-                     alt="${movie.title}" 
-                     class="movie-poster"
-                     onerror="this.src='https://via.placeholder.com/200x300?text=No+Image'">
+        console.error('No movie cards were added to the container! Using direct HTML injection');
+        // Last resort - add HTML directly with proper escaping
+        const moviesHTML = movies.map(movie => {
+            if (!movie || !movie.title) return '';
+            const title = String(movie.title).replace(/'/g, "&#39;").replace(/"/g, "&quot;");
+            const posterUrl = movie.poster_url || 'https://via.placeholder.com/200x300?text=No+Image';
+            const rating = movie.vote_average ? movie.vote_average.toFixed(1) : 'N/A';
+            return `<div class="movie-card" onclick="showMovieDetails(${movie.id})">
+                <img src="${posterUrl}" alt="${title}" class="movie-poster" onerror="this.src='https://via.placeholder.com/200x300?text=No+Image'">
                 <div class="movie-info">
-                    <div class="movie-title">${movie.title || 'Untitled Movie'}</div>
-                    <div class="movie-rating">⭐ ${movie.vote_average ? movie.vote_average.toFixed(1) : 'N/A'}</div>
+                    <div class="movie-title">${title}</div>
+                    <div class="movie-rating">⭐ ${rating}</div>
                 </div>
-            </div>
-        `).join('');
-        container.innerHTML = moviesHTML;
+            </div>`;
+        }).filter(html => html !== '').join('');
         
-        // Re-attach click handlers
-        container.querySelectorAll('.movie-card').forEach((card, index) => {
-            if (movies[index]) {
-                card.addEventListener('click', () => showMovieDetails(movies[index].id));
-            }
-        });
-        console.log('Used direct HTML injection as fallback');
+        if (moviesHTML) {
+            container.innerHTML = moviesHTML;
+            console.log('Used direct HTML injection -', movies.filter(m => m && m.title).length, 'movies');
+        } else {
+            console.error('Failed to generate movies HTML');
+            container.innerHTML = '<p style="text-align: center; color: var(--text-secondary); padding: 2rem;">Error loading movies. Please refresh the page.</p>';
+        }
     }
 }
 
@@ -901,7 +958,8 @@ function updateStatsChart(stats) {
 
 // Fallback movie data (shown when API is not available)
 function getFallbackMovies() {
-    return [
+    console.log('getFallbackMovies() called');
+    const movies = [
         {
             id: 1,
             title: 'The Shawshank Redemption',
@@ -1223,7 +1281,24 @@ function getFallbackMovies() {
             release_date: '2019-10-04'
         }
     ];
+    console.log('getFallbackMovies returning', movies.length, 'movies');
+    return movies;
 }
+
+// Global function to test movie loading (can be called from browser console)
+window.testLoadMovies = function() {
+    console.log('testLoadMovies called');
+    const container = document.getElementById('movies-results');
+    if (container) {
+        const movies = getFallbackMovies();
+        console.log('Test: Loading', movies.length, 'movies');
+        displayMovies(movies, 'movies-results');
+        return true;
+    } else {
+        console.error('Test: movies-results container not found');
+        return false;
+    }
+};
 
 // Utility Functions
 function showLoading() {
