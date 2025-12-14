@@ -322,15 +322,18 @@ async function loadPopularMovies() {
         if (data.movies && data.movies.length > 0) {
             displayMovies(data.movies, 'popular-movies');
         } else {
-            container.innerHTML = '<p style="text-align: center; color: var(--text-secondary); padding: 2rem;">No movies found. Please check your TMDB API key in the Vercel environment variables.</p>';
+            // Show fallback movies if API returns empty
+            const fallbackMovies = getFallbackMovies();
+            displayMovies(fallbackMovies, 'popular-movies');
+            showToast('Showing fallback movies. Please configure TMDB API key for real data.', 'warning');
         }
     } catch (error) {
         hideLoading();
         console.error('Error loading movies:', error);
-        const errorMessage = error.message.includes('TMDB') || error.message.includes('API key') 
-            ? 'TMDB API key is not configured. Please add TMDB_API_KEY to your Vercel environment variables.'
-            : 'Unable to load movies. The API server may not be responding. Check the browser console for details.';
-        container.innerHTML = `<p style="text-align: center; color: var(--text-secondary); padding: 2rem;">${errorMessage}</p>`;
+        // Show fallback movies on error
+        const fallbackMovies = getFallbackMovies();
+        displayMovies(fallbackMovies, 'popular-movies');
+        showToast('Using fallback movies. API may not be configured.', 'warning');
     }
 }
 
@@ -340,29 +343,70 @@ async function searchMovies() {
 
     if (!query) return;
 
+    const container = document.getElementById('movies-results');
+    if (!container) {
+        showPage('movies');
+        // Wait a bit for the page to render
+        setTimeout(() => searchMovies(), 100);
+        return;
+    }
+
     try {
         showLoading();
         const response = await fetch(`${API_BASE_URL}/movies/search?query=${encodeURIComponent(query)}`);
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
         const data = await response.json();
         hideLoading();
 
-        if (data.movies) {
+        if (data.movies && data.movies.length > 0) {
             displayMovies(data.movies, 'movies-results');
+            showPage('movies');
+        } else {
+            container.innerHTML = '<p style="text-align: center; color: var(--text-secondary); padding: 2rem;">No movies found for your search.</p>';
             showPage('movies');
         }
     } catch (error) {
         hideLoading();
-        showToast('Error searching movies', 'error');
+        console.error('Error searching movies:', error);
+        // Show fallback movies on error
+        const fallbackMovies = getFallbackMovies().filter(m => 
+            m.title.toLowerCase().includes(query.toLowerCase())
+        );
+        if (fallbackMovies.length > 0) {
+            displayMovies(fallbackMovies, 'movies-results');
+            showPage('movies');
+            showToast('Showing fallback results. API may not be configured.', 'warning');
+        } else {
+            container.innerHTML = '<p style="text-align: center; color: var(--text-secondary); padding: 2rem;">No movies found. Please check your TMDB API key configuration.</p>';
+            showPage('movies');
+        }
     }
 }
 
 function displayMovies(movies, containerId) {
     const container = document.getElementById(containerId);
-    if (!container) return;
+    if (!container) {
+        console.error(`Container with ID "${containerId}" not found`);
+        return;
+    }
+
+    if (!movies || movies.length === 0) {
+        container.innerHTML = '<p style="text-align: center; color: var(--text-secondary); padding: 2rem;">No movies found.</p>';
+        return;
+    }
 
     container.innerHTML = '';
 
     movies.forEach(movie => {
+        if (!movie || !movie.title) {
+            console.warn('Invalid movie data:', movie);
+            return;
+        }
+
         const card = document.createElement('div');
         card.className = 'movie-card';
         card.innerHTML = `
@@ -371,9 +415,9 @@ function displayMovies(movies, containerId) {
                  class="movie-poster"
                  onerror="this.src='https://via.placeholder.com/200x300?text=No+Image'">
             <div class="movie-info">
-                <div class="movie-title">${movie.title}</div>
+                <div class="movie-title" title="${movie.title}">${movie.title || 'Untitled Movie'}</div>
                 <div class="movie-rating">
-                    ⭐ ${movie.vote_average?.toFixed(1) || 'N/A'}
+                    ⭐ ${movie.vote_average ? movie.vote_average.toFixed(1) : 'N/A'}
                 </div>
             </div>
         `;
@@ -486,24 +530,37 @@ async function loadRecommendations() {
         return;
     }
 
+    const container = document.getElementById('recommendations-results');
+    if (!container) return;
+
     try {
         showLoading();
         const response = await fetch(`${API_BASE_URL}/recommendations`, {
             headers: { 'Authorization': `Bearer ${authToken}` },
         });
 
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
         const data = await response.json();
         hideLoading();
 
-        if (data.recommendations) {
+        if (data.recommendations && data.recommendations.length > 0) {
             displayMovies(data.recommendations, 'recommendations-results');
         } else {
-            document.getElementById('recommendations-results').innerHTML = 
-                '<p>No recommendations available. Add some movies to your watch history!</p>';
+            // Show fallback movies if no recommendations
+            const fallbackMovies = getFallbackMovies();
+            displayMovies(fallbackMovies, 'recommendations-results');
+            showToast('No personalized recommendations yet. Showing popular movies instead.', 'success');
         }
     } catch (error) {
         hideLoading();
-        showToast('Error loading recommendations', 'error');
+        console.error('Error loading recommendations:', error);
+        // Show fallback movies on error
+        const fallbackMovies = getFallbackMovies();
+        displayMovies(fallbackMovies, 'recommendations-results');
+        showToast('Using fallback recommendations. API may not be configured.', 'warning');
     }
 }
 
@@ -671,6 +728,108 @@ function updateStatsChart(stats) {
             },
         },
     });
+}
+
+// Fallback movie data (shown when API is not available)
+function getFallbackMovies() {
+    return [
+        {
+            id: 1,
+            title: 'The Shawshank Redemption',
+            vote_average: 9.3,
+            poster_url: 'https://via.placeholder.com/200x300?text=Shawshank',
+            overview: 'Two imprisoned men bond over a number of years, finding solace and eventual redemption through acts of common decency.',
+            release_date: '1994-09-23'
+        },
+        {
+            id: 2,
+            title: 'The Godfather',
+            vote_average: 9.2,
+            poster_url: 'https://via.placeholder.com/200x300?text=Godfather',
+            overview: 'The aging patriarch of an organized crime dynasty transfers control to his reluctant son.',
+            release_date: '1972-03-24'
+        },
+        {
+            id: 3,
+            title: 'The Dark Knight',
+            vote_average: 9.0,
+            poster_url: 'https://via.placeholder.com/200x300?text=Dark+Knight',
+            overview: 'Batman faces the Joker, a criminal mastermind who seeks to undermine Batman and create chaos.',
+            release_date: '2008-07-18'
+        },
+        {
+            id: 4,
+            title: 'Pulp Fiction',
+            vote_average: 8.9,
+            poster_url: 'https://via.placeholder.com/200x300?text=Pulp+Fiction',
+            overview: 'The lives of two mob hitmen, a boxer, and others intertwine in four tales of violence and redemption.',
+            release_date: '1994-10-14'
+        },
+        {
+            id: 5,
+            title: 'Forrest Gump',
+            vote_average: 8.8,
+            poster_url: 'https://via.placeholder.com/200x300?text=Forrest+Gump',
+            overview: 'The presidencies of Kennedy and Johnson, the Vietnam War, and other historical events unfold from the perspective of an Alabama man.',
+            release_date: '1994-07-06'
+        },
+        {
+            id: 6,
+            title: 'Inception',
+            vote_average: 8.8,
+            poster_url: 'https://via.placeholder.com/200x300?text=Inception',
+            overview: 'A thief who steals corporate secrets through dream-sharing technology is given the inverse task of planting an idea.',
+            release_date: '2010-07-16'
+        },
+        {
+            id: 7,
+            title: 'The Matrix',
+            vote_average: 8.7,
+            poster_url: 'https://via.placeholder.com/200x300?text=Matrix',
+            overview: 'A computer hacker learns about the true nature of reality and his role in the war against its controllers.',
+            release_date: '1999-03-31'
+        },
+        {
+            id: 8,
+            title: 'Goodfellas',
+            vote_average: 8.7,
+            poster_url: 'https://via.placeholder.com/200x300?text=Goodfellas',
+            overview: 'The story of Henry Hill and his life in the mob, covering his relationship with his wife and his partners.',
+            release_date: '1990-09-21'
+        },
+        {
+            id: 9,
+            title: 'The Lord of the Rings: The Return of the King',
+            vote_average: 8.9,
+            poster_url: 'https://via.placeholder.com/200x300?text=LOTR',
+            overview: 'Gandalf and Aragorn lead the World of Men against Sauron\'s army to draw his gaze from Frodo and Sam.',
+            release_date: '2003-12-17'
+        },
+        {
+            id: 10,
+            title: 'Fight Club',
+            vote_average: 8.8,
+            poster_url: 'https://via.placeholder.com/200x300?text=Fight+Club',
+            overview: 'An insomniac office worker and a devil-may-care soapmaker form an underground fight club.',
+            release_date: '1999-10-15'
+        },
+        {
+            id: 11,
+            title: 'Interstellar',
+            vote_average: 8.6,
+            poster_url: 'https://via.placeholder.com/200x300?text=Interstellar',
+            overview: 'A team of explorers travel through a wormhole in space in an attempt to ensure humanity\'s survival.',
+            release_date: '2014-11-07'
+        },
+        {
+            id: 12,
+            title: 'The Silence of the Lambs',
+            vote_average: 8.6,
+            poster_url: 'https://via.placeholder.com/200x300?text=Silence',
+            overview: 'A young F.B.I. cadet must receive the help of an incarcerated cannibalistic killer to catch another serial killer.',
+            release_date: '1991-02-14'
+        }
+    ];
 }
 
 // Utility Functions
