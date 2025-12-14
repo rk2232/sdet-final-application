@@ -68,6 +68,8 @@ function setupEventListeners() {
             const page = link.getAttribute('data-page');
             if (page === 'login' && authToken) {
                 logout();
+            } else if (page === 'logout') {
+                logout();
             } else {
                 showPage(page);
             }
@@ -110,9 +112,25 @@ function showPage(pageName) {
         page.classList.remove('active');
     });
 
-    const pageElement = document.getElementById(`${pageName}-page`);
+    // Map page names to actual page IDs
+    const pageIdMap = {
+        'login': 'auth-page',
+        'register': 'auth-page',
+        'home': 'home-page',
+        'movies': 'movies-page',
+        'recommendations': 'recommendations-page',
+        'profile': 'profile-page'
+    };
+
+    const actualPageId = pageIdMap[pageName] || `${pageName}-page`;
+    const pageElement = document.getElementById(actualPageId);
     if (pageElement) {
         pageElement.classList.add('active');
+        
+        // If showing auth page, make sure the correct tab is active
+        if (pageName === 'login' || pageName === 'register') {
+            switchAuthTab(pageName);
+        }
     }
 
     // Update nav link
@@ -135,6 +153,13 @@ function showPage(pageName) {
         const container = document.getElementById('popular-movies');
         if (container && container.innerHTML === '') {
             loadPopularMovies();
+        }
+    } else if (pageName === 'login' || pageName === 'register') {
+        // Ensure auth page is visible and correct tab is shown
+        const authPage = document.getElementById('auth-page');
+        if (authPage) {
+            authPage.classList.add('active');
+            switchAuthTab(pageName);
         }
     }
 }
